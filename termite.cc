@@ -1015,6 +1015,7 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
         if (modify_key_feed(event, info, modify_meta_table))
             return TRUE;
     } else if (modifiers == GDK_CONTROL_MASK) {
+        guint8 alt_w_payload[] = { 033, 0167 };
         switch (gdk_keyval_to_lower(event->keyval)) {
             case GDK_KEY_Tab:
                 overlay_show(&info->panel, overlay_mode::completion, vte);
@@ -1028,9 +1029,21 @@ gboolean key_press_cb(VteTerminal *vte, GdkEventKey *event, keybind_info *info) 
             case GDK_KEY_equal:
                 reset_font_scale(vte, info->config.font_scale);
                 return TRUE;
+            case GDK_KEY_w:
+                vte_terminal_feed_child_binary(info->vte, alt_w_payload, sizeof(alt_w_payload));
+                return TRUE;
             default:
                 if (modify_key_feed(event, info, modify_table))
                     return TRUE;
+        }
+    } else if (modifiers == GDK_MOD1_MASK) {
+        guint8 ctrl_w_payload[] = { 027 };
+        switch (gdk_keyval_to_lower(event->keyval)) {
+            case GDK_KEY_w:
+                vte_terminal_feed_child_binary(info->vte, ctrl_w_payload, sizeof(ctrl_w_payload));
+                return TRUE;
+            default:
+                return FALSE;
         }
     }
     return FALSE;
